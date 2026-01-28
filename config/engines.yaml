@@ -1,0 +1,22 @@
+# Engines location: drop the three repos here (or edit paths).
+# Expected layout (recommended):
+#   engines/phio/...
+#   engines/systemd-runner/...
+#   engines/sost/...
+#
+# Autodetection will try common entrypoints if commands are not set.
+
+phio:
+  path: engines/phio
+  command: null  # e.g. "bash run_all_tests.sh" or "python -m phio.cli"
+  probe_args: null
+
+systemd:
+  path: engines/systemd-runner
+  command: null  # e.g. "python -m systemd_runner.cli"
+  args_template: "--input {input} --out {out}"
+
+sost:
+  path: engines/sost
+  command: null  # e.g. "python -m scripts.run_sost"
+  args_template: "--input {input} --out {out}"

@@ -1,0 +1,49 @@
+{
+  "version": "0.1",
+  "dd_ref": {
+    "version": "0.1",
+    "windowing": {
+      "split_index": 5,
+      "n": 10
+    }
+  },
+  "relative_differences": [
+    {
+      "metric": "mean",
+      "pre": 1.04,
+      "post": 2.04,
+      "rel_delta": 0.9615384615384615
+    },
+    {
+      "metric": "std",
+      "pre": 0.11401754250991379,
+      "post": 0.1140175425099139,
+      "rel_delta": 9.73730006966799e-16
+    },
+    {
+      "metric": "min",
+      "pre": 0.9,
+      "post": 1.9,
+      "rel_delta": 1.111111111111111
+    },
+    {
+      "metric": "max",
+      "pre": 1.2,
+      "post": 2.2,
+      "rel_delta": 0.8333333333333336
+    }
+  ],
+  "buckets": {
+    "small": [
+      "std"
+    ],
+    "medium": [],
+    "large": [
+      "mean",
+      "min",
+      "max"
+    ]
+  },
+  "warnings": [],
+  "run_id": "run"
+}

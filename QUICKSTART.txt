@@ -1,0 +1,17 @@
+# QUICKSTART (réel, 3 moteurs intégrés)
+
+Depuis la racine du dossier:
+
+1) Créer une fixture depuis un CSV fourni (pour tester la chaîne; SystemD sera "skipped" si aucun .md n'est présent):
+python3 tools/collector.py --out shared_fixtures --source band_imf:fixtures/prepared_bands/band_imf_colombia_log_nochange.csv
+
+2) Lancer un cycle réel:
+bash tools/run_parallel_real.sh shared_fixtures/<cycle_id> unified_cycles
+
+3) Inspecter:
+cat unified_cycles/<cycle_id>/unified_manifest.json
+
+## Activer SystemD réellement
+SystemD attend un fichier Markdown de type TEST_MATRIX.md dans les sources du fixture (raw/*.md).
+Collecte un .md (ou ajoute-le comme source) via:
+python3 tools/collector.py --out shared_fixtures --source matrix:/chemin/vers/TEST_MATRIX.md --source data:/chemin/vers/autres_fichiers

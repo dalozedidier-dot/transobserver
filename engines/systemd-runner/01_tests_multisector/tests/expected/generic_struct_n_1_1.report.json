@@ -1,0 +1,48 @@
+{
+  "ddr": {
+    "ddr": "INCONCLUSIF",
+    "div_rel": {
+      "MAD": null,
+      "mean": 0.0,
+      "median": 0.0,
+      "p90": null,
+      "p99": null
+    },
+    "e": "INCONCLUSIF",
+    "ko": [],
+    "nc": [
+      "MAD",
+      "p90",
+      "p99"
+    ],
+    "ok": [
+      "mean",
+      "median"
+    ]
+  },
+  "extraction": {
+    "fixture": "tests/fixtures/json/groups_1_1.json",
+    "items_count": {
+      "A": 1,
+      "B": 1
+    },
+    "post_key": "B",
+    "post_n": 1,
+    "pre_key": "A",
+    "pre_n": 1,
+    "unassigned_items_count": 0,
+    "unassigned_ratio": 0.0
+  },
+  "hash_sha256": "0b787fe39dd956c268896c8d7a44a2490e7967f5fb22c56e67c262fb95e85895",
+  "meta": {
+    "adapter_id": "generic",
+    "eps": 0.02,
+    "ingestion": "json",
+    "kernel": "STRUCT_N_v0.1",
+    "min_n_for_MAD": 2,
+    "min_n_for_moments": 5,
+    "min_n_for_quantiles": 2,
+    "mode": "STRUCT_N",
+    "profile_id": "generic_struct_n_1_1"
+  }
+}

@@ -1,0 +1,8 @@
+# SystemD — v0.3.1
+# Minimal Python dependencies for optional components.
+#
+# Notes:
+# - The core DD-R runner (00_core) is stdlib-only (no external deps).
+# - The multisector test harness (01_tests_multisector) requires PyYAML.
+
+pyyaml>=6.0

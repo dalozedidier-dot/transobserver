@@ -1,0 +1,108 @@
+{
+  "version": "0.3.1-final",
+  "thresholds": {
+    "eps": 0.02,
+    "min_n_for_moments": 5,
+    "min_n_for_quantiles": 2,
+    "min_n_for_MAD": 2
+  },
+  "neutralized_by_min_n_for_moments": [
+    "variance",
+    "std",
+    "entropy"
+  ],
+  "pre": {
+    "section": "A_structure",
+    "n": 4,
+    "ids": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "invariants": {
+      "mean": 2.5,
+      "median": 2.5,
+      "MAD": 1.0,
+      "p90": 3.7,
+      "p99": 3.9699999999999998,
+      "variance": null,
+      "std": null,
+      "entropy": null
+    }
+  },
+  "post": {
+    "section": "B_metrologie",
+    "n": 3,
+    "ids": [
+      1,
+      2,
+      3
+    ],
+    "invariants": {
+      "mean": 2.0,
+      "median": 2.0,
+      "MAD": 1.0,
+      "p90": 2.8,
+      "p99": 2.98,
+      "variance": null,
+      "std": null,
+      "entropy": null
+    }
+  },
+  "diffs_rel": {
+    "mean": 0.2,
+    "median": 0.2,
+    "MAD": 0.0,
+    "p90": 0.24324324324324334,
+    "p99": 0.2493702770780856
+  },
+  "invariants_ok": [
+    "MAD"
+  ],
+  "invariants_ko": [
+    "mean",
+    "median",
+    "p90",
+    "p99"
+  ],
+  "invariants_non_calculable": [],
+  "DDR": "PARTIAL",
+  "status": {
+    "execution": "OK",
+    "compatibilite": "KO"
+  },
+  "summary_humain": {
+    "resume": "Comparaison A_structure (n=4) vs B_metrologie (n=3) : 4 invariants KO, 1 invariants OK. DDR=PARTIAL.",
+    "invariants_ok": [
+      "MAD"
+    ],
+    "invariants_ko": [
+      "mean",
+      "median",
+      "p90",
+      "p99"
+    ],
+    "divergences_rel": {
+      "mean": 0.2,
+      "median": 0.2,
+      "MAD": 0.0,
+      "p90": 0.24324324324324334,
+      "p99": 0.2493702770780856
+    },
+    "neutralized": [
+      "variance",
+      "std",
+      "entropy"
+    ],
+    "notes": [
+      "Quantiles calculés (min_n_for_quantiles=2)."
+    ]
+  },
+  "summary": "Différences au-delà de eps=0.02: KO=mean, median, p90, p99 ; OK=MAD.",
+  "limits": [
+    "Phases proxy non temporelles.",
+    "Matrice visible/tronquée => extraction potentiellement partielle.",
+    "O-06 (moments) : variance/std/entropie neutralisés si n<min_n_for_moments (non calculés ici)."
+  ]
+}

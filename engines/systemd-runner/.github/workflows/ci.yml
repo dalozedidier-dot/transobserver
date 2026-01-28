@@ -1,0 +1,156 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+def sha256_file(p: Path) -> str:
+    h = hashlib.sha256()
+    h.update(p.read_bytes())
+    return h.hexdigest()
+
+
+def run(cmd: list[str], cwd: Path) -> int:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "."
+    print("CMD:", " ".join(cmd))
+    p = subprocess.run(cmd, cwd=str(cwd), env=env)
+    return p.returncode
+
+
+def read_help(script: Path, repo: Path) -> str:
+    try:
+        p = subprocess.run(
+            [sys.executable, str(script), "--help"],
+            cwd=str(repo),
+            env={**os.environ, "PYTHONPATH": "."},
+            capture_output=True,
+            text=True,
+        )
+        return (p.stdout or "") + "\n" + (p.stderr or "")
+    except Exception:
+        return ""
+
+
+def ensure_test_matrix(repo: Path) -> Path | None:
+    m = repo / "TEST_MATRIX.md"
+    ex = repo / "TEST_MATRIX.example.md"
+    if m.exists():
+        return m
+    if ex.exists():
+        shutil.copy2(ex, m)
+        return m
+    return None
+
+
+def copy_reports(repo: Path, out_dir: Path) -> dict:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    found = {
+        "ddr_report.json": None,
+        "e_report.json": None,
+        "extraction_report.json": None,
+    }
+
+    for name in list(found.keys()):
+        hits = sorted(repo.rglob(name))
+        if hits:
+            src = hits[0]
+            dst = out_dir / name
+            shutil.copy2(src, dst)
+            found[name] = str(src.as_posix())
+
+    return found
+
+
+def write_manifest(out_dir: Path, provenance: dict, reports: dict) -> None:
+    artifacts = []
+    for fn in ["ddr_report.json", "e_report.json", "extraction_report.json"]:
+        p = out_dir / fn
+        if p.exists():
+            artifacts.append({"path": fn, "sha256": sha256_file(p)})
+
+    manifest = {
+        "version": "0.1",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "provenance": provenance,
+        "reports_source_paths": reports,
+        "artifacts": artifacts,
+    }
+    (out_dir / "run_manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
+    )
+
+
+def main() -> int:
+    repo = Path(__file__).resolve().parents[1]
+    out_root = repo / "_ci_out"
+    out_root.mkdir(parents=True, exist_ok=True)
+
+    test_matrix = ensure_test_matrix(repo)
+
+    candidates = [
+        repo / "scripts" / "run_smoke.py",
+        repo / "01_tests_multisector" / "harness.py",
+        repo / "harness.py",
+    ]
+
+    entry = None
+    for c in candidates:
+        if c.exists():
+            entry = c
+            break
+
+    if entry is None:
+        print("No entrypoint found. Looked for:")
+        for c in candidates:
+            print(" -", c.as_posix())
+        return 2
+
+    help_txt = read_help(entry, repo)
+    help_path = out_root / "entrypoint_help.txt"
+    help_path.write_text(help_txt, encoding="utf-8")
+
+    cmd = [sys.executable, str(entry)]
+
+    if "--repo-root" in help_txt:
+        cmd += ["--repo-root", "."]
+
+    if test_matrix is not None:
+        if "--test-matrix" in help_txt:
+            cmd += ["--test-matrix", str(test_matrix)]
+        elif "--matrix" in help_txt:
+            cmd += ["--matrix", str(test_matrix)]
+        elif "--test_matrix" in help_txt:
+            cmd += ["--test_matrix", str(test_matrix)]
+        else:
+            # certains scripts lisent TEST_MATRIX.md par défaut
+            pass
+
+    rc = run(cmd, repo)
+
+    smoke_dir = out_root / "ddr_smoke"
+    reports = copy_reports(repo, smoke_dir)
+
+    provenance = {
+        "repo_root": repo.as_posix(),
+        "entrypoint": entry.as_posix(),
+        "cmd": " ".join(cmd),
+    }
+    write_manifest(smoke_dir, provenance, reports)
+
+    ok = (smoke_dir / "ddr_report.json").exists() and (smoke_dir / "e_report.json").exists()
+    if not ok:
+        print("Missing required outputs: need ddr_report.json and e_report.json")
+        return 2
+
+    return rc if rc != 0 else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

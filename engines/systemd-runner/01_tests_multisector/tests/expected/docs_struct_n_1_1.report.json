@@ -1,0 +1,50 @@
+{
+  "ddr": {
+    "ddr": "INCONCLUSIF",
+    "div_rel": {
+      "MAD": null,
+      "mean": 0.0,
+      "median": 0.0,
+      "p90": null,
+      "p99": null
+    },
+    "e": "INCONCLUSIF",
+    "ko": [],
+    "nc": [
+      "MAD",
+      "p90",
+      "p99"
+    ],
+    "ok": [
+      "mean",
+      "median"
+    ]
+  },
+  "extraction": {
+    "fixture": "tests/fixtures/md/docs_n1_1.md",
+    "items_count": {
+      "A_structure": 1,
+      "B_metrologie": 1,
+      "conventions_sorties": 0,
+      "rules_globales": 0
+    },
+    "post_key": "B_metrologie",
+    "post_n": 1,
+    "pre_key": "A_structure",
+    "pre_n": 1,
+    "unassigned_items_count": 0,
+    "unassigned_ratio": 0.0
+  },
+  "hash_sha256": "91b14c869f371170d7d3fa481d846f89a2d95cd5cd609a8b9a6386f96619aeac",
+  "meta": {
+    "adapter_id": "docs",
+    "eps": 0.02,
+    "ingestion": "md",
+    "kernel": "STRUCT_N_v0.1",
+    "min_n_for_MAD": 2,
+    "min_n_for_moments": 5,
+    "min_n_for_quantiles": 2,
+    "mode": "STRUCT_N",
+    "profile_id": "docs_struct_n_1_1"
+  }
+}

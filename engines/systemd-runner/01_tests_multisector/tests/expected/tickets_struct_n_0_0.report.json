@@ -1,0 +1,44 @@
+{
+  "ddr": {
+    "ddr": "INCONCLUSIF",
+    "div_rel": {
+      "MAD": null,
+      "mean": null,
+      "median": null,
+      "p90": null,
+      "p99": null
+    },
+    "e": "INCONCLUSIF",
+    "ko": [],
+    "nc": [
+      "MAD",
+      "mean",
+      "median",
+      "p90",
+      "p99"
+    ],
+    "ok": []
+  },
+  "extraction": {
+    "fixture": "tests/fixtures/csv/tickets_0_0.csv",
+    "items_count": {},
+    "post_key": "Done",
+    "post_n": 0,
+    "pre_key": "Backlog",
+    "pre_n": 0,
+    "unassigned_items_count": 0,
+    "unassigned_ratio": 0.0
+  },
+  "hash_sha256": "ba4d1b7d55f91e22abcb2c7f2d6c3b825babcadb59ee69a3803eb6c13be41fa2",
+  "meta": {
+    "adapter_id": "tickets",
+    "eps": 0.02,
+    "ingestion": "csv",
+    "kernel": "STRUCT_N_v0.1",
+    "min_n_for_MAD": 2,
+    "min_n_for_moments": 5,
+    "min_n_for_quantiles": 2,
+    "mode": "STRUCT_N",
+    "profile_id": "tickets_struct_n_0_0"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "ddr": {
+    "ddr": "RESTORED",
+    "div_rel": {
+      "MAD": 0.0,
+      "mean": 0.0,
+      "median": 0.0,
+      "p90": 0.0,
+      "p99": 0.0
+    },
+    "e": "COMPATIBLE",
+    "ko": [],
+    "nc": [],
+    "ok": [
+      "MAD",
+      "mean",
+      "median",
+      "p90",
+      "p99"
+    ]
+  },
+  "extraction": {
+    "fixture": "tests/fixtures/json/groups_5_5.json",
+    "items_count": {
+      "A": 5,
+      "B": 5
+    },
+    "post_key": "B",
+    "post_n": 5,
+    "pre_key": "A",
+    "pre_n": 5,
+    "unassigned_items_count": 0,
+    "unassigned_ratio": 0.0
+  },
+  "hash_sha256": "a0d03b33c642d4c7dc53087f532a875de2b7c4116658edaa32b026a4189bffe1",
+  "meta": {
+    "adapter_id": "generic",
+    "eps": 0.02,
+    "ingestion": "json",
+    "kernel": "STRUCT_N_v0.1",
+    "min_n_for_MAD": 2,
+    "min_n_for_moments": 5,
+    "min_n_for_quantiles": 2,
+    "mode": "STRUCT_N",
+    "profile_id": "generic_struct_n_5_5"
+  }
+}

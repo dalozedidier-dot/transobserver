@@ -1,0 +1,30 @@
+TRYPTIQUE DD / DD-R / ÉQUILIBRE E — index de paquet (strict.2)
+Date de génération: 2026-01-19
+
+Objet:
+- Ce paquet contient (i) les cadres analytiques de référence, (ii) leurs règles épistémologiques,
+  (iii) un glossaire minimal, (iv) des compléments techniques (formules/clarifications).
+- Les contenus sont strictement descriptifs: aucune causalité implicite, aucune intention supposée,
+  aucune prescription, aucune recommandation. (cf. refs/Regles_epistemologiques.pdf)
+
+Arborescence:
+1) refs/ (références stables)
+- refs/Regles_epistemologiques.pdf : verrous épistémologiques (description vs interprétation, interdictions, données incomplètes, versionnage)
+- refs/Glossaire.pdf : définitions minimales (régime, rupture, persistance, illusions, compatibilité, non compensable, signal faible)
+- refs/Frameworks_DD_DDR_E.pdf : définitions formelles des cadres DD, DD-R, Équilibre E
+
+2) docs/ (compléments techniques)
+- docs/DD_Coherence_Formule_Final.pdf : opérateur de diagnostic de shift (DD) — métriques, normalisation robuste, critères de rupture
+- docs/DD-R_Clarifications_v0.2.1.1_Final.pdf : précisions d’usage interne de DD-R (termes « détection », référence pré-crise, non-détection, susceptibilité, statut final)
+- docs/Equilibre_E_Formule_Final.pdf : opérateur de compatibilité non compensable (Équilibre E) — agrégation par quantile, verrous, sorties
+
+Principe de séparation (paquet vs protocole):
+- Ce paquet ne contient pas le dossier « Protocole » (méthode d’application / OSF).
+- Toute utilisation dans un dépôt « Protocole » doit se faire par référence externe (lien/dépendance), sans duplication interne.
+
+Ce qui n’est pas contenu ici:
+- Aucun dataset.
+- Aucun exemple interprété.
+- Aucun seuil « conseillé » hors paramètres explicitement figés dans les documents de formule.
+- Aucun récit de causalité.
+

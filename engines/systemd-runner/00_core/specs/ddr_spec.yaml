@@ -1,0 +1,38 @@
+version: "v0.3.1"
+analysis:
+  object: "DD-R (et optionnellement E) sur TEST_MATRIX.md"
+  phases:
+    pre: "A tests structure"
+    post: "B métrologie"
+inputs:
+  test_matrix_md: "TEST_MATRIX.md"
+definitions:
+  MAD: "median(|x - median(x)|)"
+  quantiles: "linear interpolation using pos=(n-1)*q"
+  div_rel: "|y - x| / |x|  (base=pre)"
+thresholds:
+  eps: 0.02
+  min_n_for_moments: 5      # variance/std/entropie
+  min_n_for_quantiles: 2    # p90/p99
+  min_n_for_MAD: 2
+O-06:
+  symmetric: true
+  rule:
+    if_n_lt_min_n_for_moments:
+      non_calculable: ["variance", "std", "entropy"]
+invariants:
+  requested: ["mean", "median", "MAD", "p90", "p99"]
+  calculability:
+    mean: "n>=1"
+    median: "n>=1"
+    MAD: "n>=min_n_for_MAD"
+    p90: "n>=min_n_for_quantiles"
+    p99: "n>=min_n_for_quantiles"
+classification_DDR:
+  ILLUSION: "invariants_ok == [] and invariants_ko != []"
+  PARTIAL: "invariants_ok != [] and invariants_ko != []"
+  RESTORED: "invariants_ko == [] and invariants_ok != []"
+  INCONCLUSIF: "any invariant required for classification is NON_CALCULABLE"
+notes:
+  - "Phases proxy non temporelles."
+  - "Si TEST_MATRIX.md est tronquée, l'extraction est partielle."

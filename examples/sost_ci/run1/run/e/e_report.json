@@ -1,0 +1,20 @@
+{
+  "version": "0.1",
+  "ddr_ref": {
+    "version": "0.1",
+    "dd_ref": {
+      "version": "0.1",
+      "windowing": {
+        "split_index": 5,
+        "n": 10
+      }
+    }
+  },
+  "equilibrium_state": "reconfiguring",
+  "metrics": {
+    "pressure": 0.7264957264957267,
+    "dispersion": 0.49745498832576085
+  },
+  "warnings": [],
+  "run_id": "run"
+}

@@ -1,0 +1,9 @@
+id: SXX_docs_struct_n_demo
+mode: STRUCT_N
+ingestion: docs
+adapter_id: docs
+fixture: SXX_TEMPLATE_sector/tests/fixtures/demo.md
+pre_key: A_structure
+post_key: B_metrologie
+eps: 0.02
+expected: SXX_TEMPLATE_sector/tests/expected/SXX_docs_struct_n_demo.report.json

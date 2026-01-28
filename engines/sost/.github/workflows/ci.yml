@@ -1,0 +1,70 @@
+name: SOST-Framework CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+env:
+  PYTHONHASHSEED: "0"
+  TZ: "UTC"
+  LC_ALL: "C.UTF-8"
+  LANG: "C.UTF-8"
+
+jobs:
+  lint-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (best effort)
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Compile (sanity)
+        run: |
+          set -euo pipefail
+          python -m compileall -q .
+
+      - name: Import smoke
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sost
+          from sost import core, dd_coherence, dd_restoration, equilibrium
+          print("OK imports:", sost.__name__, core.__name__)
+          PY
+
+      - name: Smoke run (optional reports)
+        run: |
+          set -euo pipefail
+          mkdir -p _ci_out
+
+          if [ -f scripts/run_sost.py ] && [ -f test_data/minimal_timeseries.csv ]; then
+            # Important: garantir que la racine du repo est dans le PYTHONPATH
+            PYTHONPATH=. python scripts/run_sost.py \
+              --input test_data/minimal_timeseries.csv \
+              --out _ci_out/run1
+            echo "OK: SOST runner executed"
+          else
+            echo "Skip: scripts/run_sost.py ou test_data/minimal_timeseries.csv absent"
+          fi
+
+      - name: Upload artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sost-ci-artifacts
+          path: _ci_out

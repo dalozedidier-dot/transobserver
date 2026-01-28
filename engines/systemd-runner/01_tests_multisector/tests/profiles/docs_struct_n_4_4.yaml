@@ -1,0 +1,14 @@
+id: docs_struct_n_4_4
+mode: STRUCT_N
+ingestion: md
+adapter_id: docs
+fixture: tests/fixtures/md/docs_n4_4.md
+pre_key: A_structure
+post_key: B_metrologie
+eps: 0.02
+min_n_for_moments: 5
+min_n_for_quantiles: 2
+min_n_for_MAD: 2
+strict_parsing: false
+max_unassigned_ratio: 0.1
+expected: tests/expected/docs_struct_n_4_4.report.json

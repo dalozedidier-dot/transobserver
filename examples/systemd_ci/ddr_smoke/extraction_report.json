@@ -1,0 +1,27 @@
+{
+  "version": "0.3.1-final",
+  "detected_sections": [
+    "rules_globales",
+    "conventions_sorties",
+    "A_structure",
+    "B_metrologie"
+  ],
+  "counts": {
+    "rules_globales": 4,
+    "conventions_sorties": 3,
+    "A_structure": 4,
+    "B_metrologie": 3
+  },
+  "assigned_items_count": 14,
+  "total_list_items_count": 14,
+  "unassigned_items_count": 0,
+  "unassigned_items_ratio": 0.0,
+  "unassigned_items_preview": [],
+  "warnings": [],
+  "parsing_meta": {
+    "ignored_codeblock_lines": 0,
+    "total_lines": 23,
+    "total_lines_after_filter": 23
+  },
+  "note": "Les séries proxy sont IDs 1..n (n = nombre d'items listés dans la section)."
+}

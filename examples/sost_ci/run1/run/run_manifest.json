@@ -1,0 +1,17 @@
+{
+  "run_id": "run",
+  "input": {
+    "path": "test_data/minimal_timeseries.csv",
+    "sha256": "33c4d8f6a9a608d9f7d665a8173040721030355c9227eaa52ff13ab57e422ac5"
+  },
+  "artifacts": {
+    "dd": "dd/dd_report.json",
+    "ddr": "ddr/ddr_report.json",
+    "e": "e/e_report.json"
+  },
+  "hashes": {
+    "dd_report.json": "d50a34f5ee2beb7cb2795ca5ea3b094b0aa4289be47f28305899fda5e20959d9",
+    "ddr_report.json": "fed91ceeed552375f0b7cf1a53162b9afe67cb3f5926fa22894b902f2284ec79",
+    "e_report.json": "8012a9b269cf7de433d5d1a9cf23cd2d531f67eb9dcd9fdfc30f6d906344a9c2"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "E": "INCOMPATIBLE",
+  "ko": [
+    "mean",
+    "median",
+    "p90",
+    "p99"
+  ],
+  "nc": []
+}

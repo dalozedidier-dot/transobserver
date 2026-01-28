@@ -1,0 +1,19 @@
+Référence externe — règle mécanique de non-duplication
+
+But: permettre à un dépôt "Protocole" de pointer vers ce paquet sans copier les fichiers.
+
+Option A (git submodule):
+- Ajouter ce paquet comme sous-module (ex: vendor/tryptique)
+- Documenter le hash/commit pointé
+- Ne pas dupliquer refs/ ni docs/ ailleurs dans le dépôt
+
+Option B (release asset / archive):
+- Stocker l'archive du paquet en tant qu'asset de release
+- Référencer la version (ex: strict.2) et l'empreinte SHA256 du MANIFEST
+
+Option C (lien OSF / DOI / URL):
+- Référencer l'identifiant et la version
+- Conserver le MANIFEST pour vérification d'intégrité
+
+Vérification:
+- Utiliser MANIFEST_SHA256.json pour contrôler l'intégrité des fichiers distribués.

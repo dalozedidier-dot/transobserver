@@ -1,0 +1,68 @@
+{
+  "version": "0.1",
+  "windowing": {
+    "split_index": 5,
+    "n": 10
+  },
+  "pre": {
+    "stats": {
+      "n": 5,
+      "mean": 1.04,
+      "std": 0.11401754250991379,
+      "min": 0.9,
+      "max": 1.2
+    }
+  },
+  "post": {
+    "stats": {
+      "n": 5,
+      "mean": 2.04,
+      "std": 0.1140175425099139,
+      "min": 1.9,
+      "max": 2.2
+    }
+  },
+  "differences": [
+    {
+      "metric": "mean",
+      "pre": 1.04,
+      "post": 2.04,
+      "delta": 1.0
+    },
+    {
+      "metric": "std",
+      "pre": 0.11401754250991379,
+      "post": 0.1140175425099139,
+      "delta": 1.1102230246251565e-16
+    },
+    {
+      "metric": "min",
+      "pre": 0.9,
+      "post": 1.9,
+      "delta": 0.9999999999999999
+    },
+    {
+      "metric": "max",
+      "pre": 1.2,
+      "post": 2.2,
+      "delta": 1.0000000000000002
+    }
+  ],
+  "invariants": [
+    {
+      "name": "monotonic_time_assumed",
+      "value": true
+    },
+    {
+      "name": "univariate_series",
+      "value": true
+    }
+  ],
+  "warnings": [],
+  "run_id": "run",
+  "input": {
+    "path": "test_data/minimal_timeseries.csv",
+    "sha256": "33c4d8f6a9a608d9f7d665a8173040721030355c9227eaa52ff13ab57e422ac5",
+    "n": 10
+  }
+}

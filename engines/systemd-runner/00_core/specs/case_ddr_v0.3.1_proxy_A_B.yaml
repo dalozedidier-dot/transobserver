@@ -1,0 +1,31 @@
+case_id: ddr_v0_3_0_proxy_A_B
+input:
+  pre:
+    label: A_tests_structure
+    ids: [1,2,3,4]
+  post:
+    label: B_metrologie
+    ids: [1,2,3]
+spec:
+  eps: 0.02
+  min_n_for_moments: 5
+  min_n_for_quantiles: 2
+  min_n_for_MAD: 2
+  MAD_definition: "median(|x - median(x)|)"
+  quantile_method: "linear ((n-1)q interpolation)"
+  div_rel: "|y-x|/|x| (base=pre)"
+  invariants: [mean, median, MAD, p90, p99]
+results:
+  pre:  {mean: 2.5, median: 2.5, MAD: 1.0, p90: 3.7, p99: 3.97}
+  post: {mean: 2.0, median: 2.0, MAD: 1.0, p90: 2.8, p99: 2.98}
+  div_rel: {mean: 0.20, median: 0.20, MAD: 0.00, p90: 0.243, p99: 0.249}
+  invariants_ok: [MAD]
+  invariants_ko: [mean, median, p90, p99]
+  DDR: PARTIAL
+  status:
+    execution: OK
+    compatibilite: KO
+limits:
+  - "Phases proxy arbitraires non temporelles."
+  - "min_n_for_moments=5 neutralise variance/std/entropie pre/post (n<5)."
+  - "Matrice visible tronquée (sections supplémentaires absentes)."

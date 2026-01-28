@@ -1,0 +1,10 @@
+CHANGELOG
+
+strict.2 (2026-01-19)
+- Ajout: INDEX.txt (cartographie du paquet)
+- Ajout: PROTOCOL_LINKING.txt (mécanismes de référence externe)
+- Ajout: VERSION.txt (version explicite au niveau racine)
+- Recalcul: MANIFEST_SHA256.json incluant les nouveaux fichiers
+
+strict.1
+- Structure initiale: refs/ + docs/ + README + MANIFEST

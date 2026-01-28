@@ -1,0 +1,111 @@
+name: Smoke (Systemd-runner)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install -U pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Debug layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "ROOT:"
+          ls -la
+          echo "FIND TEST_MATRIX candidates:"
+          find . -maxdepth 4 -type f -iname "*test*matrix*.md" -print || true
+          echo "FIND harness candidates:"
+          find . -maxdepth 5 -type f \( -iname "*harness*.py" -o -iname "*smoke*.py" \) -print || true
+
+      - name: Run smoke DDR + E
+        shell: bash
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          rm -rf _ci_out
+          mkdir -p _ci_out
+
+          # Cherche un fichier profiles (ton TEST_MATRIX.example.md)
+          PROFILES=""
+          if [ -f TEST_MATRIX.md ]; then
+            PROFILES="TEST_MATRIX.md"
+          else
+            CAND=$(find . -maxdepth 4 -type f -iname "*test*matrix*.md" | head -n 1 || true)
+            if [ -n "$CAND" ]; then
+              PROFILES="$CAND"
+            fi
+          fi
+
+          if [ -n "$PROFILES" ]; then
+            echo "Using profiles: $PROFILES"
+          else
+            echo "No profiles file found. Proceeding without --profiles."
+          fi
+
+          OUT_JSON="_ci_out/harness_results.json"
+
+          # Lance l'entrypoint le plus probable
+          if [ -f scripts/run_smoke.py ]; then
+            python scripts/run_smoke.py 2>&1 | tee _ci_out/smoke.log
+
+          elif [ -f 01_tests_multisector/harness.py ]; then
+            if [ -n "$PROFILES" ]; then
+              python 01_tests_multisector/harness.py --repo-root . --profiles "$PROFILES" --out "$OUT_JSON" 2>&1 | tee _ci_out/smoke.log
+            else
+              python 01_tests_multisector/harness.py --repo-root . --out "$OUT_JSON" 2>&1 | tee _ci_out/smoke.log
+            fi
+
+          elif [ -f harness.py ]; then
+            if [ -n "$PROFILES" ]; then
+              python harness.py --repo-root . --profiles "$PROFILES" --out "$OUT_JSON" 2>&1 | tee _ci_out/smoke.log
+            else
+              python harness.py --repo-root . --out "$OUT_JSON" 2>&1 | tee _ci_out/smoke.log
+            fi
+
+          else
+            echo "No smoke/harness entrypoint found." | tee _ci_out/smoke.log
+            exit 2
+          fi
+
+          echo "Found reports:"
+          find . -maxdepth 7 -type f \( -name "ddr_report.json" -o -name "e_report.json" -o -name "extraction_report.json" \) -print | tee _ci_out/found_reports.txt || true
+
+          # Si le harness écrit un JSON d'agrégation, on le garde
+          if [ -f "$OUT_JSON" ]; then
+            echo "Harness output JSON: $OUT_JSON"
+          else
+            echo "No harness_results.json produced (not fatal if reports exist)."
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: systemd_smoke_reports
+          path: |
+            _ci_out/
+            **/ddr_report.json
+            **/e_report.json
+            **/extraction_report.json
+          if-no-files-found: error
