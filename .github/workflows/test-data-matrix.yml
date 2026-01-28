@@ -1,0 +1,60 @@
+name: test-data-matrix
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  matrix-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Liste “utilisable” et raisonnable pour CI
+        file:
+          - test_data/minimal_timeseries.csv
+          - test_data/GDPDeflator.csv
+          - test_data/CPI.csv
+          - test_data/Population.csv
+          - test_data/RealGDP.csv
+          - test_data/RealPerCapitaGDP.csv
+          - test_data/RealExchangeRate.csv
+          - test_data/ITU_DH_INT_USER_PT.csv
+          - test_data/ITU_DH_ACT_MOB_PER_100.csv
+          - test_data/WB_WBL_SG_LAW_INDX.csv
+
+        # Choisis mock (rapide) ou real (plus lourd)
+        mode: [mock]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Smoke one file
+        id: run
+        run: |
+          chmod +x tools/run_parallel.sh || true
+          chmod +x tools/run_parallel_real.sh || true
+          chmod +x tools/smoke_one.py || true
+          CYCLE_ID=$(python3 tools/smoke_one.py --file "${{ matrix.file }}" --mode "${{ matrix.mode }}")
+          echo "CYCLE_ID=$CYCLE_ID" >> $GITHUB_ENV
+          echo "cycle_id=$CYCLE_ID" >> $GITHUB_OUTPUT
+
+      - name: Show unified manifest
+        run: |
+          cat "unified_cycles/${{ steps.run.outputs.cycle_id }}/unified_manifest.json"
+
+      - name: Upload minimal artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cycle-${{ matrix.mode }}-${{ matrix.file }}
+          path: |
+            unified_cycles/${{ steps.run.outputs.cycle_id }}/unified_manifest.json
+            unified_cycles/${{ steps.run.outputs.cycle_id }}/phio/**
+            unified_cycles/${{ steps.run.outputs.cycle_id }}/systemd/**
+            unified_cycles/${{ steps.run.outputs.cycle_id }}/sost/**
