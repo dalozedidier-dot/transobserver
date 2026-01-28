@@ -1,0 +1,136 @@
+{
+  "version": "metrology_v0.2.0",
+  "config": {
+    "N": 400,
+    "tS4": 300,
+    "W": 60,
+    "step": 10,
+    "alpha": 0.05,
+    "bonferroni": true,
+    "alpha_used": 0.025,
+    "abrupt_threshold": 2.5
+  },
+  "counts": {
+    "n_alt": 400,
+    "n_null": 400,
+    "n_excl": 240,
+    "n_borderline": 400,
+    "n_total": 1440
+  },
+  "confusion_matrix_counts": {
+    "ALT": {
+      "ALT": 339,
+      "BORDERLINE": 16,
+      "EXCLU": 0,
+      "NULL": 0
+    },
+    "BORDERLINE": {
+      "ALT": 61,
+      "BORDERLINE": 280,
+      "EXCLU": 96,
+      "NULL": 142
+    },
+    "EXCLU": {
+      "ALT": 0,
+      "BORDERLINE": 0,
+      "EXCLU": 76,
+      "NULL": 0
+    },
+    "NULL": {
+      "ALT": 0,
+      "BORDERLINE": 104,
+      "EXCLU": 68,
+      "NULL": 258
+    }
+  },
+  "confusion_matrix_row_norm": {
+    "ALT": {
+      "ALT": 0.8475,
+      "BORDERLINE": 0.04,
+      "EXCLU": 0.0,
+      "NULL": 0.0
+    },
+    "BORDERLINE": {
+      "ALT": 0.1525,
+      "BORDERLINE": 0.7,
+      "EXCLU": 0.4,
+      "NULL": 0.355
+    },
+    "EXCLU": {
+      "ALT": 0.0,
+      "BORDERLINE": 0.0,
+      "EXCLU": 0.316667,
+      "NULL": 0.0
+    },
+    "NULL": {
+      "ALT": 0.0,
+      "BORDERLINE": 0.26,
+      "EXCLU": 0.283333,
+      "NULL": 0.645
+    }
+  },
+  "key_rates": {
+    "power_TPR_alt": {
+      "value": 0.8475,
+      "ci95": [
+        0.8089753764784815,
+        0.8794133383047404
+      ]
+    },
+    "alpha_emp_FPR_null_to_alt": {
+      "value": 0.0,
+      "ci95": [
+        0.0,
+        0.009512640599680667
+      ]
+    },
+    "beta_emp_FNR_alt_not_alt": {
+      "value": 0.1525,
+      "ci95": [
+        0.12058666169525958,
+        0.19102462352151847
+      ]
+    },
+    "exclusion_leak_EXCLU_to_ALT": {
+      "value": 0.0,
+      "ci95": [
+        0.0,
+        0.015754489799935698
+      ]
+    },
+    "null_any_signal_rate": {
+      "value": 0.355,
+      "ci95": [
+        0.30968822623349224,
+        0.4030704395404151
+      ]
+    },
+    "excl_as_null_rate": {
+      "value": 0.2833333333333333,
+      "ci95": [
+        0.23008386871880204,
+        0.3434097435278367
+      ]
+    }
+  },
+  "signal_rates_by_true_mode": {
+    "S1": {
+      "ALT": 0.995,
+      "BORDERLINE": 0.47,
+      "EXCLU": 0.229167,
+      "NULL": 0.21
+    },
+    "S2": {
+      "ALT": 0.9675,
+      "BORDERLINE": 0.34,
+      "EXCLU": 0.0,
+      "NULL": 0.0
+    },
+    "S3": {
+      "ALT": 0.875,
+      "BORDERLINE": 0.28,
+      "EXCLU": 0.254167,
+      "NULL": 0.2275
+    }
+  }
+}
