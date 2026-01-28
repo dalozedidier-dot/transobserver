@@ -6,54 +6,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  discover:
-    runs-on: ubuntu-latest
-    outputs:
-      files_json: ${{ steps.discover.outputs.files_json }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Discover CSV in test_data
-        id: discover
-        run: |
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-
-          root = Path("test_data")
-          files = []
-          if root.exists():
-            for p in sorted(root.rglob("*.csv")):
-              # filtre simple: ignore fichiers énormes (CI)
-              if p.stat().st_size <= 5 * 1024 * 1024:
-                files.append(p.as_posix())
-
-          print(f"Found {len(files)} CSV <= 5MB")
-          print("\\n".join(files))
-
-          # output for matrix
-          print(f"::set-output name=files_json::{json.dumps(files)}")
-
-          # job summary
-          summary = []
-          summary.append(f"### test_data CSV sélectionnés (<= 5MB): {len(files)}")
-          for f in files:
-            summary.append(f"- `{f}`")
-          Path("/tmp/summary.md").write_text("\\n".join(summary) + "\\n", encoding="utf-8")
-          PY
-          cat /tmp/summary.md >> $GITHUB_STEP_SUMMARY
-
   matrix-test:
-    needs: discover
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        file: ${{ fromJson(needs.discover.outputs.files_json) }}
+        # Liste "utilisable" pour CI (petits CSV, noms propres)
+        file:
+          - test_data/minimal_timeseries.csv
+          - test_data/GDPDeflator.csv
+          - test_data/CPI.csv
+          - test_data/Population.csv
+          - test_data/RealGDP.csv
+          - test_data/RealPerCapitaGDP.csv
+          - test_data/RealExchangeRate.csv
+          - test_data/ITU_DH_INT_USER_PT.csv
+          - test_data/ITU_DH_ACT_MOB_PER_100.csv
+          - test_data/WB_WBL_SG_LAW_INDX.csv
         mode: [mock]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -62,22 +36,33 @@ jobs:
 
       - name: Smoke one file
         id: run
+        shell: bash
         run: |
+          set -euo pipefail
+
           chmod +x tools/run_parallel.sh || true
           chmod +x tools/run_parallel_real.sh || true
           chmod +x tools/smoke_one.py || true
 
-          CYCLE_ID=$(python3 tools/smoke_one.py --file "${{ matrix.file }}" --mode "${{ matrix.mode }}")
-          echo "CYCLE_ID=$CYCLE_ID" >> $GITHUB_ENV
-          echo "cycle_id=$CYCLE_ID" >> $GITHUB_OUTPUT
+          # IMPORTANT: smoke_one.py prints logs; we only keep LAST LINE as cycle_id
+          CYCLE_ID="$(python3 tools/smoke_one.py \
+            --file "${{ matrix.file }}" \
+            --mode "${{ matrix.mode }}" | tail -n 1 | tr -d '\r')"
 
-          echo "### Résultat" >> $GITHUB_STEP_SUMMARY
-          echo "- file: \`${{ matrix.file }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- mode: \`${{ matrix.mode }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- cycle_id: \`$CYCLE_ID\`" >> $GITHUB_STEP_SUMMARY
+          echo "CYCLE_ID=$CYCLE_ID" >> "$GITHUB_ENV"
 
-      - name: Upload unified manifest
-        uses: actions/upload-artifact@v4
-        with:
-          name: manifest-${{ matrix.mode }}-${{ matrix.file }}
-          path: unified_cycles/${{ steps.run.outputs.cycle_id }}/unified_manifest.json
+          # safer output (supports any content)
+          {
+            echo "cycle_id<<EOF"
+            echo "$CYCLE_ID"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "### Résultat" >> "$GITHUB_STEP_SUMMARY"
+          echo "- file: \`${{ matrix.file }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- mode: \`${{ matrix.mode }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- cycle_id: \`$CYCLE_ID\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Show unified manifest
+        shell: bash
+        run: |
