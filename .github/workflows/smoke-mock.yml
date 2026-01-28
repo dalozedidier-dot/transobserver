@@ -1,0 +1,72 @@
+name: smoke-mock
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create fixture (from test_data)
+        run: |
+          python3 tools/collector.py --out shared_fixtures \
+            --source sample:test_data/minimal_timeseries.csv
+          echo "CYCLE_ID=$(ls -1 shared_fixtures | tail -n 1)" >> $GITHUB_ENV
+
+      - name: Run mock cycle
+        run: |
+          chmod +x tools/run_parallel.sh || true
+          bash tools/run_parallel.sh "shared_fixtures/${CYCLE_ID}" unified_cycles
+
+      - name: Verify unified_manifest integrity (hashes)
+        run: |
+          python3 - <<'PY'
+          import json, hashlib
+          from pathlib import Path
+
+          cycle_id = Path("shared_fixtures").glob("*")
+          cycle_id = sorted([p.name for p in cycle_id])[-1]
+          mpath = Path("unified_cycles")/cycle_id/"unified_manifest.json"
+          assert mpath.exists(), f"missing {mpath}"
+
+          m = json.loads(mpath.read_text(encoding="utf-8"))
+          root = Path("unified_cycles")/cycle_id
+
+          def sha256_file(p: Path) -> str:
+              h = hashlib.sha256()
+              with p.open("rb") as f:
+                  for chunk in iter(lambda: f.read(1024*1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          # Check all referenced artifacts exist + hash matches
+          for a in m.get("artifacts", []):
+              rel = a["path"]
+              p = root/rel
+              assert p.exists(), f"missing artifact: {rel}"
+              got = sha256_file(p)
+              exp = a["sha256"]
+              assert got == exp, f"hash mismatch for {rel}: got {got} expected {exp}"
+
+          print("OK: unified_manifest.json hashes verified")
+          PY
+
+      - name: Show unified manifest
+        run: |
+          cat "unified_cycles/${CYCLE_ID}/unified_manifest.json"
+
+      - name: Upload cycle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: unified-cycle-${{ env.CYCLE_ID }}
+          path: unified_cycles/${{ env.CYCLE_ID }}/
