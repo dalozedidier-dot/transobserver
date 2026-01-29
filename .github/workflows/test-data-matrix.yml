@@ -11,24 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       files_json: ${{ steps.discover.outputs.files_json }}
+      files_count: ${{ steps.discover.outputs.files_count }}
+      skipped_big: ${{ steps.discover.outputs.skipped_big }}
+      limit_mb: ${{ steps.discover.outputs.limit_mb }}
       limit_label: ${{ steps.discover.outputs.limit_label }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Discover CSV files in test_data (light on push, full on manual)
+      - name: Discover CSV files in test_data
         id: discover
         shell: bash
         run: |
           set -euo pipefail
 
           python3 - <<'PY'
-          import json
-          import os
+          import json, os
           from pathlib import Path
 
           event = os.environ.get("GITHUB_EVENT_NAME", "")
-          # Push/PR: léger. Manuel: plus large.
           max_mb = 50 if event == "workflow_dispatch" else 5
           max_bytes = max_mb * 1024 * 1024
 
@@ -44,19 +45,15 @@ jobs:
                 else:
                   skipped_big += 1
               except FileNotFoundError:
-                # rare race condition; ignore
                 continue
 
-          Path("/tmp/files.json").write_text(
-            json.dumps(files, separators=(",", ":")),
-            encoding="utf-8"
-          )
+          Path("/tmp/files.json").write_text(json.dumps(files, separators=(",", ":")), encoding="utf-8")
 
           summary = []
           summary.append("## Discover")
-          summary.append(f"- Mode event: `{event}`")
-          summary.append(f"- Limite taille: {max_mb} MB")
-          summary.append(f"- CSV sélectionnés: {len(files)}")
+          summary.append(f"- Event: `{event}`")
+          summary.append(f"- Limite: {max_mb} MB")
+          summary.append(f"- CSV retenus: {len(files)}")
           summary.append(f"- CSV ignorés (trop gros): {skipped_big}")
           summary.append("")
           summary.append("### Liste")
@@ -68,10 +65,31 @@ jobs:
           cat /tmp/discover_summary.md >> "$GITHUB_STEP_SUMMARY"
 
           echo "files_json=$(cat /tmp/files.json)" >> "$GITHUB_OUTPUT"
-          # petit label utile pour affichage downstream
+          echo "files_count=$(python3 -c 'import json; print(len(json.load(open("/tmp/files.json"))))')" >> "$GITHUB_OUTPUT"
+          echo "skipped_big=$(python3 - <<'PY'
+          import os
+          from pathlib import Path
+          event=os.environ.get("GITHUB_EVENT_NAME","")
+          max_mb=50 if event=="workflow_dispatch" else 5
+          max_bytes=max_mb*1024*1024
+          root=Path("test_data")
+          skipped=0
+          if root.exists():
+            for p in root.rglob("*.csv"):
+              try:
+                if p.stat().st_size > max_bytes:
+                  skipped += 1
+              except FileNotFoundError:
+                pass
+          print(skipped)
+          PY
+          )" >> "$GITHUB_OUTPUT"
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "limit_mb=50" >> "$GITHUB_OUTPUT"
             echo "limit_label=50MB" >> "$GITHUB_OUTPUT"
           else
+            echo "limit_mb=5" >> "$GITHUB_OUTPUT"
             echo "limit_label=5MB" >> "$GITHUB_OUTPUT"
           fi
 
@@ -93,8 +111,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Smoke one file
-        id: run
+      - name: Run smoke_one (log + cycle_id)
+        id: smoke
         shell: bash
         run: |
           set -euo pipefail
@@ -103,11 +121,20 @@ jobs:
           chmod +x tools/run_parallel_real.sh || true
           chmod +x tools/smoke_one.py || true
 
-          CYCLE_ID="$(python3 tools/smoke_one.py \
+          START_TS="$(date +%s)"
+
+          # On log tout, puis on récupère le cycle_id comme dernière ligne.
+          python3 tools/smoke_one.py \
             --file "${{ matrix.file }}" \
-            --mode "${{ matrix.mode }}" | tail -n 1 | tr -d '\r')"
+            --mode "${{ matrix.mode }}" | tee smoke_log.txt
+
+          CYCLE_ID="$(tail -n 1 smoke_log.txt | tr -d '\r')"
+
+          END_TS="$(date +%s)"
+          DURATION="$((END_TS - START_TS))"
 
           echo "cycle_id=$CYCLE_ID" >> "$GITHUB_OUTPUT"
+          echo "duration_s=$DURATION" >> "$GITHUB_OUTPUT"
 
       - name: Make safe artifact name
         if: always()
@@ -117,7 +144,41 @@ jobs:
           SAFE_FILE="${{ matrix.file }}"
           SAFE_FILE="${SAFE_FILE//\//_}"
           SAFE_FILE="${SAFE_FILE// /_}"
+          SAFE_FILE="${SAFE_FILE//\(/_}"
+          SAFE_FILE="${SAFE_FILE//\)/_}"
           echo "SAFE_FILE=$SAFE_FILE" >> "$GITHUB_ENV"
+
+      - name: Job Summary (per file)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "## Rapport matrix-test" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Event: \`${{ github.event_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Limite discover: \`${{ needs.discover.outputs.limit_label }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Fichiers retenus: \`${{ needs.discover.outputs.files_count }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Ignorés (trop gros): \`${{ needs.discover.outputs.skipped_big }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Fichier courant: \`${{ matrix.file }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Mode: \`${{ matrix.mode }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Cycle ID: \`${{ steps.smoke.outputs.cycle_id }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Durée smoke: \`${{ steps.smoke.outputs.duration_s }} s\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "### Présence des sorties" >> "$GITHUB_STEP_SUMMARY"
+          CYCLE_DIR="unified_cycles/${{ steps.smoke.outputs.cycle_id }}"
+          [ -f "$CYCLE_DIR/unified_manifest.json" ] && echo "- unified_manifest.json: OK" >> "$GITHUB_STEP_SUMMARY" || echo "- unified_manifest.json: manquant" >> "$GITHUB_STEP_SUMMARY"
+          [ -f "$CYCLE_DIR/phio/phio_manifest.json" ] && echo "- phio_manifest.json: OK" >> "$GITHUB_STEP_SUMMARY" || echo "- phio_manifest.json: manquant" >> "$GITHUB_STEP_SUMMARY"
+          [ -f "$CYCLE_DIR/systemd/run_manifest.json" ] && echo "- systemd/run_manifest.json: OK" >> "$GITHUB_STEP_SUMMARY" || echo "- systemd/run_manifest.json: manquant" >> "$GITHUB_STEP_SUMMARY"
+          [ -f "$CYCLE_DIR/sost/run_manifest.json" ] && echo "- sost/run_manifest.json: OK" >> "$GITHUB_STEP_SUMMARY" || echo "- sost/run_manifest.json: manquant" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "### Log smoke_one.py (extrait)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 80 smoke_log.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload pack (default)
         if: always()
@@ -126,27 +187,28 @@ jobs:
           name: pack-${{ matrix.mode }}-${{ needs.discover.outputs.limit_label }}-${{ env.SAFE_FILE }}
           retention-days: 7
           path: |
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/unified_manifest.json
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/input/fixture.json
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/input/raw/**
+            smoke_log.txt
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/unified_manifest.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/input/fixture.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/input/raw/**
 
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/phio/phio_report.json
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/phio/phio_manifest.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/phio/phio_report.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/phio/phio_manifest.json
 
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/systemd/extraction_report.json
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/systemd/ddr_report.json
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/systemd/e_report.json
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/systemd/run_manifest.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/systemd/extraction_report.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/systemd/ddr_report.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/systemd/e_report.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/systemd/run_manifest.json
 
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/sost/dd/dd_report.json
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/sost/ddr/ddr_report.json
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/sost/e/e_report.json
-            unified_cycles/${{ steps.run.outputs.cycle_id }}/sost/run_manifest.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/sost/dd/dd_report.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/sost/ddr/ddr_report.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/sost/e/e_report.json
+            unified_cycles/${{ steps.smoke.outputs.cycle_id }}/sost/run_manifest.json
 
       - name: Upload full cycle (manual only)
         if: always() && github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: full-${{ matrix.mode }}-${{ needs.discover.outputs.limit_label }}-${{ env.SAFE_FILE }}
-          path: unified_cycles/${{ steps.run.outputs.cycle_id }}/
+          path: unified_cycles/${{ steps.smoke.outputs.cycle_id }}/
           retention-days: 3
