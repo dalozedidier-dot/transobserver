@@ -1,0 +1,1 @@
+la couche “Collector” : il collecte et versionne des métriques brutes, alimente DD (rupture), DD-R (restauration) et E (équilibre), avec séparation stricte des responsabilités et artefacts reproductibles.
