@@ -1,39 +1,40 @@
 # targets.yml
-# Sélecteurs robustes:
-# - préférer "id" (workflow ID GitHub) pour éviter les doublons de noms (ex: Hulk a 2 fois "Smoke (Systemd-runner)").
-# - alternative: "file" (nom du fichier YAML dans .github/workflows)
-# - sinon: "name"
+# Chaque entrée déclenche un workflow dans un repo.
+# Sélecteurs possibles (au choix):
+# - id: workflow ID (le plus robuste)
+# - file: nom du fichier dans .github/workflows (ex: ci.yml)
+# - name: nom visible dans l'UI Actions (éviter si doublons)
 
 targets:
-  - repo: Captain-America
+  - repo: Loki
     workflows:
-      - id: 227985891
-        label: "Band suite (SOST)"
-
-  - repo: PhiO
-    workflows:
-      - id: 227219843
-        label: "Smoke PhiO (stable)"
+      - file: dd_smoke.yml
+        label: "DD smoke"
+      - file: ci.yml
+        label: "CI"
+      - file: band_suite_isolated.yml
+        label: "Band suite isolated"
 
   - repo: Hulk
     workflows:
-      # Deux workflows ont le même nom dans Hulk.
-      # Si tu n'en veux qu'un, commente l'autre.
-      - id: 227376981
-        label: "Smoke (Systemd-runner) [ci.yml]"
-      - id: 228050948
-        label: "Smoke (Systemd-runner) [smoke.yml]"
+      - file: ci.yml
+        label: "Smoke (Systemd-runner) ci.yml"
+      - file: smoke.yml
+        label: "Smoke (Systemd-runner) smoke.yml"
 
   - repo: Vision
     workflows:
-      - id: 228343243
+      - file: collect_all_reports.yml
         label: "Collect all reports"
 
-  - repo: Loki
+  - repo: Captain-America
     workflows:
-      - id: 228192240
-        label: "band-suite (isolated)"
-      - id: 228170208
-        label: "dd-smoke"
-      - id: 228192241
-        label: "CI Optimized"
+      - file: ci.yml
+        label: "CI"
+      - file: band_suite_isolated.yml
+        label: "Band suite isolated"
+
+  - repo: PhiO
+    workflows:
+      - file: smoke.yml
+        label: "Smoke"

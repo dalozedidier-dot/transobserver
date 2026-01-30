@@ -1,19 +1,24 @@
-Collect all reports
+Dispatch all modules (simple)
+
+But:
+Tu cliques "Run workflow" une fois, et ça déclenche les workflows ciblés dans les 5 repos.
+Ce workflow ne télécharge rien et n'attend pas la fin. Il fait seulement des dispatch.
 
 Fichiers:
-- .github/workflows/collect_all_reports.yml
-- scripts/collect_all_reports.py
-- repos.txt
+- .github/workflows/dispatch_all_modules.yml
+- scripts/dispatch_all.py
+- targets.yml
 
-Usage (GitHub web):
-Actions -> Collect all reports -> Run workflow
+Pré-requis:
+- Secret GH_PAT dans le repo qui héberge ce workflow
+- GH_PAT doit avoir Actions: Read and write sur les repos ciblés
 
-Recommandation token:
-Créer un secret GH_PAT dans le repo qui exécute ce workflow.
-Il doit avoir accès aux repos listés et la permission Actions en lecture (download) suffit,
-mais selon les règles GitHub il peut être nécessaire de lui donner plus.
+Où lancer (GitHub web):
+Repo orchestrateur -> Actions -> "Dispatch all modules" -> Run workflow
 
-Sorties:
-- _collected_reports/manifest.json
-- _collected_reports/<owner>__<repo>/run_<id>/artifacts/*
-- all_reports_bundle_<timestamp>.zip (si make_zip = true)
+Ajuster:
+- targets.yml : mets les bons fichiers workflow (ci.yml, smoke.yml, etc.)
+  ou remplace par "id:" si tu veux zéro ambiguïté.
+
+Sortie:
+- artefact "dispatch_out" contenant _dispatch_out/summary.json

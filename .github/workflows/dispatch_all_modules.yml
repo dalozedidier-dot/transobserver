@@ -1,0 +1,66 @@
+name: Dispatch all modules
+
+on:
+  workflow_dispatch:
+    inputs:
+      owner:
+        description: "Owner GitHub des repos"
+        required: false
+        default: "dalozedidier-dot"
+      keep_going:
+        description: "Continuer même si un dispatch échoue"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Require GH_PAT
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_PAT}" ]; then
+            echo "ERREUR: secret GH_PAT manquant."
+            echo "Ajoute un secret repo nommé GH_PAT (PAT) avec Actions: Read and write sur les repos ciblés."
+            exit 2
+          fi
+          echo "GH_PAT OK"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install deps
+        run: |
+          set -euo pipefail
+          python -m pip install -U pip
+          python -m pip install pyyaml
+
+      - name: Dispatch workflows (no wait)
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          set -euo pipefail
+          KEEP=""
+          if [ "${{ inputs.keep_going }}" = "true" ]; then
+            KEEP="--keep-going"
+          fi
+          python scripts/dispatch_all.py --owner "${{ inputs.owner }}" --targets targets.yml --out _dispatch_out $KEEP
+
+      - name: Upload dispatch output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dispatch_out
+          path: _dispatch_out/**
+          if-no-files-found: warn
